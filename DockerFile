@@ -1,0 +1,29 @@
+# Base image with Node.js
+FROM node:14 AS build
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the package.json and package-lock.json files to the container
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the source code to the container
+COPY . .
+
+# Build the React app
+RUN npm run build
+
+# Start a new stage with a lightweight HTTP server
+FROM nginx:1.21-alpine
+
+# Copy the built React app from the previous stage to the Nginx server
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Expose the desired port (optional)
+EXPOSE 3000
+
+# Start Nginx
+CMD ["npm", "start"]
